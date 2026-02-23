@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: amazon-clone-frontend:latest
+        image: amazon-frontend:latest
         ports:
         - containerPort: 5173
         env:
