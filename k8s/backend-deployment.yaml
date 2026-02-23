@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: amazon-clone-backend:latest
+        image: amazon-backend:latest
         ports:
         - containerPort: 5000
         env:
