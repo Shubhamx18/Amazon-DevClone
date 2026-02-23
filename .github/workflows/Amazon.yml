@@ -6,32 +6,32 @@ on:
       - main
 
 jobs:
-  build-push-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
+      - uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Backend Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
+      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
 
-      - name: Push Backend Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
+      - run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
+      - run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
 
-      - name: Build Frontend Image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
 
-      - name: Push Frontend Image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-      - name: Copy k8s files to EC2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy k8s folder
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -40,17 +40,49 @@ jobs:
           source: "k8s"
           target: "/home/ubuntu/"
 
-      - name: Deploy on EC2
+      - name: Setup & Deploy on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+
+            sudo apt update -y
+
+            if ! command -v docker &> /dev/null
+            then
+              sudo apt install -y docker.io
+              sudo systemctl enable docker
+              sudo systemctl start docker
+              sudo usermod -aG docker ubuntu
+            fi
+
+            if ! command -v kubectl &> /dev/null
+            then
+              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+              sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            fi
+
+            if ! command -v kind &> /dev/null
+            then
+              curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+              chmod +x ./kind
+              sudo mv ./kind /usr/local/bin/kind
+            fi
+
+            if ! kind get clusters | grep -q "dev-cluster"
+            then
+              kind create cluster --name dev-cluster
+            fi
+
+            kubectl cluster-info
+
             kubectl apply -f /home/ubuntu/k8s/namespace.yaml
             kubectl apply -f /home/ubuntu/k8s/mysql-pvc.yaml
             kubectl apply -f /home/ubuntu/k8s/mysql-deployment.yaml
             kubectl apply -f /home/ubuntu/k8s/backend-deployment.yaml
             kubectl apply -f /home/ubuntu/k8s/frontend-deployment.yaml
+
             kubectl rollout status deployment/backend
             kubectl rollout status deployment/frontend
