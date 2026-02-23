@@ -42,16 +42,29 @@ jobs:
           source: "k8s"
           target: "/home/ubuntu/"
 
-      - name: Deploy to EC2
+      - name: Deploy to EC2 Kubernetes
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            kubectl apply -f /home/ubuntu/k8s
-            kubectl get deployments
-            kubectl rollout restart deployment/backend
-            kubectl rollout restart deployment/frontend
-            kubectl rollout status deployment/backend
-            kubectl rollout status deployment/frontend
+            # Create namespace first
+            kubectl apply -f /home/ubuntu/k8s/namespace.yaml
+
+            # Apply remaining resources inside namespace
+            kubectl apply -f /home/ubuntu/k8s/mysql-pvc.yaml
+            kubectl apply -f /home/ubuntu/k8s/mysql-deployment.yaml
+            kubectl apply -f /home/ubuntu/k8s/backend-deployment.yaml
+            kubectl apply -f /home/ubuntu/k8s/frontend-deployment.yaml
+
+            # Check deployments in correct namespace
+            kubectl get deployments -n amazon-clone
+
+            # Restart deployments to pull latest image
+            kubectl rollout restart deployment/backend -n amazon-clone
+            kubectl rollout restart deployment/frontend -n amazon-clone
+
+            # Wait for rollout
+            kubectl rollout status deployment/backend -n amazon-clone
+            kubectl rollout status deployment/frontend -n amazon-clone
