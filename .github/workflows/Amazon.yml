@@ -1,0 +1,56 @@
+name: CI-CD-K8S
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-push-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Backend Image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
+
+      - name: Push Backend Image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
+
+      - name: Build Frontend Image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
+
+      - name: Push Frontend Image
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
+
+      - name: Copy k8s files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "k8s"
+          target: "/home/ubuntu/"
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            kubectl apply -f /home/ubuntu/k8s/namespace.yaml
+            kubectl apply -f /home/ubuntu/k8s/mysql-pvc.yaml
+            kubectl apply -f /home/ubuntu/k8s/mysql-deployment.yaml
+            kubectl apply -f /home/ubuntu/k8s/backend-deployment.yaml
+            kubectl apply -f /home/ubuntu/k8s/frontend-deployment.yaml
+            kubectl rollout status deployment/backend
+            kubectl rollout status deployment/frontend
