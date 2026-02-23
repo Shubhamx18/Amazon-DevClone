@@ -33,6 +33,16 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
 
+      - name: Clean Remote k8s Folder
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            rm -rf /home/ubuntu/k8s
+            mkdir -p /home/ubuntu/k8s
+
       - name: Copy Kubernetes Manifests
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -49,7 +59,8 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            kubectl apply -f /home/ubuntu/k8s/
+            kubectl apply -f /home/ubuntu/k8s
+            kubectl get deployments
             kubectl rollout restart deployment/backend
             kubectl rollout restart deployment/frontend
             kubectl rollout status deployment/backend
