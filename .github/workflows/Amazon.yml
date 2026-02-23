@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,20 +33,14 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
 
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
       - name: Copy Kubernetes Manifests
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "k8s"
-          target: "/home/ubuntu/"
+          source: "k8s/*"
+          target: "/home/ubuntu/k8s"
 
       - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
