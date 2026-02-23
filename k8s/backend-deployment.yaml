@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: shubhamx18/amazon-backend:latest
+        image: shubhamm18/amazon-backend:latest
         ports:
         - containerPort: 5000
         env:
