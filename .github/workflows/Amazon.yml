@@ -6,11 +6,11 @@ on:
       - main
 
 jobs:
-  build:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Login to DockerHub
@@ -19,25 +19,29 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Backend
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
+      - name: Build Backend Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
 
-      - name: Push Backend
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
+      - name: Push Backend Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
 
-      - name: Build Frontend
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
+      - name: Build Frontend Image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
 
-      - name: Push Frontend
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
+      - name: Push Frontend Image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
 
 
   deploy:
-    needs: build
+    needs: build-and-push
     runs-on: ubuntu-latest
 
     steps:
-      - name: Copy k8s folder
+      - name: Copy Kubernetes Manifests
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -46,7 +50,7 @@ jobs:
           source: "k8s"
           target: "/home/ubuntu/"
 
-      - name: Deploy
+      - name: Deploy to EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
