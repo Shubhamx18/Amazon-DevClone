@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,24 +20,19 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build Backend Image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest ./backend
 
       - name: Push Backend Image
-        run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-backend:latest
 
       - name: Build Frontend Image
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest ./frontend
 
       - name: Push Frontend Image
-        run: |
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
-
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/amazon-frontend:latest
 
   deploy:
-    needs: build-and-push
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
