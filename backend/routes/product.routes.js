@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const ctrl = require('../controllers/product.controller');
+router.get('/', ctrl.getAllProducts);
+router.get('/featured', ctrl.getFeaturedProducts);
+router.get('/deals', ctrl.getTopDeals);
+router.get('/bestsellers', ctrl.getBestsellers);
+router.get('/new-arrivals', ctrl.getNewArrivals);
+router.get('/:id', ctrl.getProductById);
+router.get('/slug/:slug', ctrl.getProductBySlug);
+module.exports = router;

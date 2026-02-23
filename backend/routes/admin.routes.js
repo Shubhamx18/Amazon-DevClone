@@ -1,0 +1,15 @@
+const router = require('express').Router();
+const ctrl = require('../controllers/admin.controller');
+const { auth, isAdmin } = require('../middleware/auth');
+router.use(auth, isAdmin);
+router.get('/dashboard', ctrl.getDashboard);
+router.get('/users', ctrl.getAllUsers);
+router.put('/users/:id', ctrl.updateUserRole);
+router.put('/users/:id/role', ctrl.updateUserRole);
+router.get('/orders', ctrl.getAllOrders);
+router.put('/orders/:id', ctrl.updateOrderStatus);
+router.put('/orders/:id/status', ctrl.updateOrderStatus);
+router.get('/products', ctrl.getAllProducts);
+router.put('/products/:id/featured', ctrl.toggleProductFeatured);
+router.delete('/products/:id', ctrl.deleteProduct);
+module.exports = router;

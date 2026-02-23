@@ -1,0 +1,12 @@
+const router = require('express').Router();
+const ctrl = require('../controllers/seller.controller');
+const { auth, isSeller } = require('../middleware/auth');
+router.use(auth, isSeller);
+router.get('/dashboard', ctrl.getSellerDashboard);
+router.get('/products', ctrl.getSellerProducts);
+router.post('/products', ctrl.createProduct);
+router.put('/products/:id', ctrl.updateProduct);
+router.delete('/products/:id', ctrl.deleteProduct);
+router.get('/orders', ctrl.getSellerOrders);
+router.put('/orders/:itemId/status', ctrl.updateOrderItemStatus);
+module.exports = router;

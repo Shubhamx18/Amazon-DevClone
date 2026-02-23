@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: amazon-clone-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: Shubham@6024
+      MYSQL_DATABASE: amazon_clone
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - amazon-network
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: amazon-clone-backend
+    environment:
+      NODE_ENV: production
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: amazon_clone
+      DB_USER: root
+      DB_PASSWORD: Shubham@6024
+      JWT_SECRET: amazon-clone-super-secret-key-2024
+      JWT_EXPIRES_IN: 7d
+      UPLOAD_DIR: uploads
+      FRONTEND_URL: http://localhost:3000
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+    depends_on:
+      - mysql
+    networks:
+      - amazon-network
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: amazon-clone-frontend
+    environment:
+      VITE_API_URL: http://localhost:5000/api
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - amazon-network
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+
+networks:
+  amazon-network:
+    driver: bridge
