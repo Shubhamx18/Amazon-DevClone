@@ -17,8 +17,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: amazon-frontend:latest
-        ports:
+        image: shubhamx18/amazon-frontend:latest
         - containerPort: 5173
         env:
         - name: VITE_API_URL
