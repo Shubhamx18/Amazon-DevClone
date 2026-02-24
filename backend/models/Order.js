@@ -1,6 +1,5 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
-const { v4: uuidv4 } = require('uuid');
 
 const Order = sequelize.define('Order', {
     id: {
@@ -13,7 +12,7 @@ const Order = sequelize.define('Order', {
         unique: true,
         allowNull: false,
         field: 'order_number',
-        defaultValue: () => `AMZ-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}`
+        defaultValue: () => `AMZ-${Date.now()}-${Math.random().toString(36).substr(2, 5).toUpperCase()}` 
     },
     userId: {
         type: DataTypes.INTEGER,
