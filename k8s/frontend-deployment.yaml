@@ -23,18 +23,7 @@ spec:
           env:
             - name: VITE_API_URL
               value: "http://backend-service:5000/api"
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 5173
-            initialDelaySeconds: 30
-            periodSeconds: 10
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 5173
-            initialDelaySeconds: 5
-            periodSeconds: 5
+        
 
 ---
 apiVersion: v1
