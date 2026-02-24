@@ -16,32 +16,32 @@ spec:
         app: backend
     spec:
       containers:
-      - name: backend
-        image: shubhamm18/amazon-backend:latest
-        ports:
-        - containerPort: 5000
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: DB_HOST
-          value: "mysql-service"
-        - name: DB_PORT
-          value: "3306"
-        - name: DB_NAME
-          value: "amazon_clone"
-        - name: DB_USER
-          value: "root"
-        - name: DB_PASSWORD
-          value: "Shubham@6024"
-        - name: JWT_SECRET
-          value: "amazon-clone-super-secret-key-2024"
-        - name: JWT_EXPIRES_IN
-          value: "7d"
-        - name: UPLOAD_DIR
-          value: "uploads"
-        - name: FRONTEND_URL
-          value: "http://frontend-service"
-       
+        - name: backend
+          image: shubhamm18/amazon-backend:latest
+          ports:
+            - containerPort: 5000
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: DB_HOST
+              value: "mysql-service"
+            - name: DB_PORT
+              value: "3306"
+            - name: DB_NAME
+              value: "amazon_clone"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASSWORD
+              value: "Shubham@6024"
+            - name: JWT_SECRET
+              value: "amazon-clone-super-secret-key-2024"
+            - name: JWT_EXPIRES_IN
+              value: "7d"
+            - name: UPLOAD_DIR
+              value: "uploads"
+            - name: FRONTEND_URL
+              value: "http://frontend-service"
+
 ---
 apiVersion: v1
 kind: Service
@@ -52,6 +52,6 @@ spec:
   selector:
     app: backend
   ports:
-  - port: 5000
-    targetPort: 5000
+    - port: 5000
+      targetPort: 5000
   type: ClusterIP
